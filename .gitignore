@@ -398,3 +398,81 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+
+
+
+
+# Игнорировать сгенерированные файлы на этапе сборки
+/bin/*
+/obj/*
+/packages/*
+*.exe
+*.dll
+*.pdb
+*.suo
+*.userprefs
+*.vspscc
+*.vssscc
+_ReSharper*/
+*.DotSettings
+
+# Игнорировать сгенерированные файлы NuGet
+[Bb]in/
+[Oo]bj/
+packages/
+*.nupkg
+
+# Игнорировать файлы Visual Studio
+.vs/
+*.user
+*.cache
+*.resharper*
+*.autosave
+*.Backup*
+*.VC.db
+*.VC.VCW.opendb
+*.opensdf
+*.sdf
+*.dbmdl
+*.tlog
+*.obj
+*.manifest
+*.resources
+*.res
+*.xdc
+
+# Игнорировать файлы операционной системы
+[Tt]humbs.db
+*.DS_Store
+
+# Игнорировать файлы издателя ClickOnce
+/publish/*
+
+# Игнорировать логи
+*.log
+*.etl
+
+# Игнорировать результаты тестирования
+TestResults/
+
+# Дополнительные игнорирования (зависит от проекта)
+*.bak
+*.swp
+*.tmp
+# Игнорировать VS-Specific
+[Oo]utput/
+
+# Игнорировать пользовательские настройки WPF
+*.csproj.user
+*.sln.docstates
+*.sln.cache
+*.sln.global
+*.sln.filters
+
+# Игнорировать файлы Azure DevOps
+.vspscc
+
+# Игнорировать файлы локальной базы данных
+*.mdf
+*.ldf
