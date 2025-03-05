@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Images\arrow-left.png" />
     <Resource Include="Images\arrow-right.png" />
     <Resource Include="Images\comments.png" />

@@ -15,10 +15,11 @@ namespace Compiler
     {
         //public static List<Color> ColorsOfTheText = new List<Color>();
 
-        public static Dictionary<string, Color> ColorBook = new Dictionary<string, Color>() {
-                {"Вперёд,Назад,Влево,Вправо,Complex", Colors.Green},
-                {"Вверх,Вниз,new", Colors.Blue},
-                {"Pow,Polar",Colors.Orange }
+        public static readonly Dictionary<string, Color> ColorBook = new Dictionary<string, Color>() {
+            { "Вверх", Colors.Blue },
+            { "Вниз", Colors.Blue },
+            { "Вправо", Colors.Green },
+            { "Влево", Colors.Green }
             };
         
     }
