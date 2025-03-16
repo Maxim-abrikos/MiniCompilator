@@ -5,121 +5,159 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Shapes;
 
 namespace Compiler
 {
     internal static class LeksAnalisation
     {
         private static readonly HashSet<string> _variables = new HashSet<string>();
+
+
         public static List<string> Analyze(TextEditor TE)
         {
-            var errors = new List<string>();
+            var result = new List<string>();
 
-            for (int i = 0; i < TE.Document.LineCount; i++)
+            for (int i = 0; i < TE.LineCount; i++)
             {
                 var line = TE.Document.GetText(TE.Document.GetLineByNumber(i + 1)).Trim();
 
-                // Игнорируем пустые строки и комментарии
                 if (string.IsNullOrEmpty(line) || line.StartsWith("//"))
                     continue;
 
-                // Список ошибок для текущей строки
                 var lineErrors = new List<string>();
 
-                // Проверка окончания строки на ';'
                 if (!line.EndsWith(";"))
                 {
-                    lineErrors.Add($"Ошибка синтаксиса окончания строки: строка должна заканчиваться символом ';'.");
+                    var errorPosition = line.Length;
+                    lineErrors.Add($"Ошибка синтаксиса окончания строки: строка должна заканчиваться символом ';'. Позиция: {errorPosition}");
+                }
+                else
+                {
+                    line = line[..^1].Trim();
                 }
 
-                // Убираем ';' для дальнейшего анализа (если он есть)
-                line = line.TrimEnd(';').Trim();
-
-                // Разделяем строку на две части по символу '='
                 var parts = line.Split(new[] { '=' }, 2);
                 if (parts.Length != 2)
                 {
-                    lineErrors.Add($"Ошибка присваивания: отсутствует символ '='.");
+                    var errorPosition = line.Length;
+                    lineErrors.Add($"Ошибка присваивания: отсутствует символ '='. Позиция: {errorPosition}");
                 }
                 else
                 {
                     var leftPart = parts[0].Trim();
                     var rightPart = parts[1].Trim();
 
-                    // Проверка левой части
-                    if (!CheckLeftPart(leftPart, out var variableName, out var leftError))
+                    if (!CheckLeftPart(leftPart, out var variableName, out var leftError, out var leftErrorPosition))
                     {
-                        lineErrors.Add($"Ошибка объявления: {leftError}.");
+                        lineErrors.Add($"Ошибка объявления: {leftError}. Позиция: {leftErrorPosition}");
                     }
 
-                    // Проверка правой части
-                    if (!CheckRightPart(rightPart, out var rightError))
+                    if (!CheckRightPart(rightPart, parts[0].Length + 1, out var rightError, out var rightErrorPosition))
                     {
-                        lineErrors.Add($"Ошибка инициализации: {rightError}.");
+                        lineErrors.Add($"Ошибка инициализации: {rightError}. Позиция: {rightErrorPosition}");
                     }
 
-                    // Если левая часть корректна, добавляем переменную в список
                     if (lineErrors.Count == 0)
                     {
                         _variables.Add(variableName);
                     }
                 }
 
-                // Добавляем все ошибки текущей строки в общий список
                 if (lineErrors.Count > 0)
                 {
-                    errors.Add($"Строка {i + 1}:");
-                    errors.AddRange(lineErrors);
+                    result.Add($"Строка {i + 1}:");
+                    result.AddRange(lineErrors);
                 }
-            }
-
-            // Вывод ошибок
-            if (errors.Count > 0)
-            {
-                foreach (var error in errors)
+                else
                 {
-                    Console.WriteLine(error);
+                    var tokens = TokenizeLine(line);
+                    result.Add($"Строка {i + 1}:");
+                    foreach (var token in tokens)
+                    {
+                        result.Add($"{token.Code} - {token.Category} - {token.Text} - {token.IndexInfo}");
+                    }
+                    result.Add("10 - Конец оператора - ; - " + line.Length);
                 }
             }
-            else
-            {
-                Console.WriteLine("Ошибок не найдено.");
-            }
 
-            // Вывод ошибок
-            if (errors.Count > 0)
-            {
-                return errors;
-            }
-            else
-            {
-                return null;
-            }
+            return result;
         }
 
-        private static bool CheckLeftPart(string leftPart, out string variableName, out string error)
+        private static List<Token> TokenizeLine(string line)
+        {
+            var tokens = new List<Token>();
+            var buffer = "";
+            var startIndex = 0;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                var ch = line[i];
+
+                if (char.IsWhiteSpace(ch))
+                {
+                    if (!string.IsNullOrEmpty(buffer))
+                    {
+                        tokens.Add(new Token(buffer, startIndex, i - 1));
+                        buffer = "";
+                    }
+                    tokens.Add(new Token(ch.ToString(), i, i));
+                    startIndex = i + 1;
+                }
+                else if (IsSpecialSymbol(ch))
+                {
+                    if (!string.IsNullOrEmpty(buffer))
+                    {
+                        tokens.Add(new Token(buffer, startIndex, i - 1));
+                        buffer = "";
+                    }
+                    tokens.Add(new Token(ch.ToString(), i, i));
+                    startIndex = i + 1;
+                }
+                else
+                {
+                    buffer += ch;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(buffer))
+            {
+                tokens.Add(new Token(buffer, startIndex, line.Length - 1));
+            }
+
+            return tokens;
+        }
+
+        private static bool IsSpecialSymbol(char ch)
+        {
+            return ch == '=' || ch == '(' || ch == ')' || ch == ',' || ch == ';';
+        }
+
+        private static bool CheckLeftPart(string leftPart, out string variableName, out string error, out int errorPosition)
         {
             variableName = null;
             error = null;
+            errorPosition = -1;
 
-            // Проверяем формат: "Complex <имя_переменной>"
             var parts = leftPart.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2)
             {
                 error = "ожидается формат 'Complex <имя_переменной>'";
+                errorPosition = leftPart.IndexOf(leftPart, StringComparison.Ordinal);
                 return false;
             }
 
             if (parts[0] != "Complex")
             {
                 error = "ключевое слово 'Complex' отсутствует или указано неверно";
+                errorPosition = leftPart.IndexOf(parts[0], StringComparison.Ordinal);
                 return false;
             }
 
-            // Проверяем имя переменной
             if (!IsValidVariableName(parts[1]))
             {
                 error = $"недопустимое имя переменной: '{parts[1]}'";
+                errorPosition = leftPart.IndexOf(parts[1], StringComparison.Ordinal);
                 return false;
             }
 
@@ -127,29 +165,50 @@ namespace Compiler
             return true;
         }
 
-        private static bool CheckRightPart(string rightPart, out string error)
+        private static bool CheckRightPart(string rightPart, int rightPartStartOffset, out string error, out int errorPosition)
         {
             error = null;
+            errorPosition = -1;
 
-            // Проверяем, является ли правая часть именем существующей переменной
             if (_variables.Contains(rightPart))
                 return true;
 
-            // Проверяем, является ли правая часть конструкцией "new Complex(<число>, <число>)"
-            var match = Regex.Match(rightPart, @"^new\s+Complex\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)$");
+            var match = Regex.Match(rightPart, @"^(new)\s+(Complex)\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)$");
             if (!match.Success)
             {
-                error = "ожидается 'new Complex(<число>, <число>)' или имя существующей переменной";
+
+                var newMatch = Regex.Match(rightPart, @"^(new)\s");
+                var complexMatch = Regex.Match(rightPart, @"\b(Complex)\b");
+
+                if (!newMatch.Success && !complexMatch.Success)
+                {
+                    error = "ожидается 'new Complex(<число>, <число>)' или имя существующей переменной";
+                    errorPosition = rightPartStartOffset;
+                }
+                else if (!newMatch.Success)
+                {
+                    error = "ключевое слово 'new' отсутствует или указано неверно";
+                    errorPosition = rightPartStartOffset + rightPart.IndexOf("new", StringComparison.Ordinal);
+                    if (errorPosition == -1)
+                    {
+                        errorPosition = rightPartStartOffset;
+                    }
+                }
+                else if (!complexMatch.Success)
+                {
+                    error = "ключевое слово 'Complex' отсутствует или указано неверно";
+                    errorPosition = rightPartStartOffset + rightPart.IndexOf("new", StringComparison.Ordinal) + "new".Length;
+                }
                 return false;
             }
 
-            // Проверяем корректность чисел
-            var number1 = match.Groups[1].Value.Trim();
-            var number2 = match.Groups[2].Value.Trim();
+            var number1 = match.Groups[3].Value.Trim();
+            var number2 = match.Groups[4].Value.Trim();
 
             if (!IsValidNumber(number1) || !IsValidNumber(number2))
             {
                 error = "некорректные аргументы: ожидаются два числа";
+                errorPosition = rightPartStartOffset + rightPart.IndexOf(number1, StringComparison.Ordinal);
                 return false;
             }
 
@@ -158,16 +217,12 @@ namespace Compiler
 
         private static bool IsValidVariableName(string name)
         {
-            // Имя переменной должно начинаться с буквы и содержать только буквы, цифры и '_'
             return Regex.IsMatch(name, @"^[a-zA-Z_][a-zA-Z0-9_]*$");
         }
 
         private static bool IsValidNumber(string number)
         {
-            // Проверяем, что число корректное (целое, дробное, с экспонентой)
             return Regex.IsMatch(number, @"^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$");
         }
-
-
     }
 }

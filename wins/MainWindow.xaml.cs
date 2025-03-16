@@ -26,7 +26,6 @@ using System.Windows.Forms;
 
 namespace WpfApp1
 {
-
     public partial class MainWindow : Window
     {
         private string fileName;
@@ -83,7 +82,7 @@ namespace WpfApp1
             {
                 File.WriteAllText(filePath, "Hello");
                 textEditor.Clear();
-                textEditor.Text+="Hello";
+                textEditor.Text += "Hello";
 
                 MessageBox.Show("Файл успешно создан: " + fileName);
             }
@@ -219,7 +218,7 @@ namespace WpfApp1
             }
         }
 
-        
+
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             List<string> ToWrite = LeksAnalisation.Analyze(textEditor);
