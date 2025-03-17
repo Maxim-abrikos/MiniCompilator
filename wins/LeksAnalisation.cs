@@ -14,33 +14,118 @@ namespace Compiler
         private static readonly HashSet<string> _variables = new HashSet<string>();
 
 
+        //public static List<string> Analyze(TextEditor TE)
+        //{
+        //    var result = new List<string>();
+
+        //    for (int i = 0; i < TE.LineCount; i++)
+        //    {
+        //        var line = TE.Document.GetText(TE.Document.GetLineByNumber(i + 1)).Trim();
+
+        //        if (string.IsNullOrEmpty(line) || line.StartsWith("//"))
+        //            continue;
+
+        //        var lineErrors = new List<string>();
+
+        //        if (!line.EndsWith(";"))
+        //        {
+        //            var errorPosition = line.Length;
+        //            lineErrors.Add($"Ошибка синтаксиса окончания строки: строка должна заканчиваться символом ';'. Позиция: {errorPosition}");
+        //        }
+        //        else
+        //        {
+        //            line = line[..^1].Trim();
+        //        }
+
+        //        var parts = line.Split(new[] { '=' }, 2);
+        //        if (parts.Length != 2)
+        //        {
+        //            var errorPosition = line.Length;
+        //            lineErrors.Add($"Ошибка присваивания: отсутствует символ '='. Позиция: {errorPosition}");
+        //        }
+        //        else
+        //        {
+        //            var leftPart = parts[0].Trim();
+        //            var rightPart = parts[1].Trim();
+
+        //            if (!CheckLeftPart(leftPart, out var variableName, out var leftError, out var leftErrorPosition))
+        //            {
+        //                lineErrors.Add($"Ошибка объявления: {leftError}. Позиция: {leftErrorPosition}");
+        //            }
+
+        //            if (!CheckRightPart(rightPart, parts[0].Length + 1, out var rightError, out var rightErrorPosition))
+        //            {
+        //                lineErrors.Add($"Ошибка инициализации: {rightError}. Позиция: {rightErrorPosition}");
+        //            }
+
+        //            if (lineErrors.Count == 0)
+        //            {
+        //                _variables.Add(variableName);
+        //            }
+        //        }
+
+        //        if (lineErrors.Count > 0)
+        //        {
+        //            result.Add($"Строка {i + 1}:");
+        //            result.AddRange(lineErrors);
+        //        }
+        //        else
+        //        {
+        //            var tokens = TokenizeLine(line);
+        //            result.Add($"Строка {i + 1}:");
+        //            foreach (var token in tokens)
+        //            {
+        //                result.Add($"{token.Code} - {token.Category} - {token.Text} - {token.IndexInfo}");
+        //            }
+        //            result.Add("10 - Конец оператора - ; - " + line.Length);
+        //        }
+        //    }
+
+        //    return result;
+        //}
         public static List<string> Analyze(TextEditor TE)
         {
             var result = new List<string>();
+            var currentLine = new StringBuilder();
+            int lineNumber = 1;
 
             for (int i = 0; i < TE.LineCount; i++)
             {
                 var line = TE.Document.GetText(TE.Document.GetLineByNumber(i + 1)).Trim();
 
                 if (string.IsNullOrEmpty(line) || line.StartsWith("//"))
+                {
+                    lineNumber++;
                     continue;
+                }
 
-                var lineErrors = new List<string>();
+                currentLine.Append(line);
 
                 if (!line.EndsWith(";"))
                 {
-                    var errorPosition = line.Length;
+                    currentLine.Append(" "); // Добавляем пробел для разделения строк
+                    continue;
+                }
+
+                var fullLine = currentLine.ToString();
+                currentLine.Clear();
+
+                var lineErrors = new List<string>();
+
+                if (!fullLine.EndsWith(";"))
+                {
+                    var errorPosition = fullLine.Length;
                     lineErrors.Add($"Ошибка синтаксиса окончания строки: строка должна заканчиваться символом ';'. Позиция: {errorPosition}");
                 }
                 else
                 {
-                    line = line[..^1].Trim();
+                    fullLine = fullLine[..^1].Trim();
                 }
 
-                var parts = line.Split(new[] { '=' }, 2);
+                var parts = fullLine.Split(new[] { '=' }, 2);
                 if (parts.Length != 2)
                 {
-                    var errorPosition = line.Length;
+                    var errorPosition = fullLine.Length;
                     lineErrors.Add($"Ошибка присваивания: отсутствует символ '='. Позиция: {errorPosition}");
                 }
                 else
@@ -66,23 +151,26 @@ namespace Compiler
 
                 if (lineErrors.Count > 0)
                 {
-                    result.Add($"Строка {i + 1}:");
+                    result.Add($"Строка {lineNumber}:");
                     result.AddRange(lineErrors);
                 }
                 else
                 {
-                    var tokens = TokenizeLine(line);
-                    result.Add($"Строка {i + 1}:");
+                    var tokens = TokenizeLine(fullLine);
+                    result.Add($"Строка {lineNumber}:");
                     foreach (var token in tokens)
                     {
                         result.Add($"{token.Code} - {token.Category} - {token.Text} - {token.IndexInfo}");
                     }
-                    result.Add("10 - Конец оператора - ; - " + line.Length);
+                    result.Add("10 - Конец оператора - ; - " + fullLine.Length);
                 }
+
+                lineNumber++;
             }
 
             return result;
         }
+
 
         private static List<Token> TokenizeLine(string line)
         {

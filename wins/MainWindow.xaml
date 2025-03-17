@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>-->
 
 
-        
+
 
 
         <Button x:Name="NewFile" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" Height="45" Width="48" Background="Transparent" BorderBrush="Transparent" Click="MakeNewFile">
@@ -46,14 +46,6 @@
         <Button x:Name="AboutProgrammButton" HorizontalAlignment="Left" Margin="671,41,0,0" VerticalAlignment="Top" Height="45" Width="48" Background="Transparent" BorderBrush="Transparent" Click="AboutProgrammButton_Click">
             <Image Source="Images/quality.png"/>
         </Button>
-        <!--<RichTextBox x:Name="RCB1" Margin="10,100,10,0" TextChanged="RCB1_TextChanged" RenderTransformOrigin="0.5,0.5" Height="181" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto" Grid.Row="0" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-             ScrollViewer.VerticalScrollBarVisibility="Visible">
-            <FlowDocument>
-                <Paragraph>
-                    <Run Text="А"/>
-                </Paragraph>
-            </FlowDocument>
-        </RichTextBox>-->
         <avalonEdit:TextEditor x:Name="textEditor" 
                      FontFamily="Consolas"
                      FontSize="10pt"
@@ -61,8 +53,8 @@
                      SyntaxHighlighting="C#"
                      Margin="10,91,10,179"
                      Grid.Row ="1" RenderTransformOrigin="0.5,0"/>
-        <RichTextBox x:Name="RCB2" Margin="10,286,10,0" TextChanged="RichTextBox_TextChanged" IsReadOnly="True" RenderTransformOrigin="0.5,0.5" Height="140" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto" Grid.Row="0" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-             ScrollViewer.VerticalScrollBarVisibility="Visible" >
+        <RichTextBox x:Name="RCB2" Margin="10,250,10,20" TextChanged="RichTextBox_TextChanged" IsReadOnly="True" RenderTransformOrigin="0.5,0.5" Height="140" VerticalScrollBarVisibility="Auto" Grid.Row="0" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+             ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalAlignment="Bottom">
             <RichTextBox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform ScaleY="1"/>
